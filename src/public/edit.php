@@ -1,19 +1,17 @@
 <?php
-$id = $_GET['id'];
-$db_username = 'root';
-$db_password = 'password';
+$id = filter_input(INPUT_GET, "id");
+$dbUserName = 'root';
+$dbPassWord = 'password';
 $pdo = new PDO(
     'mysql:host=mysql; dbname=memo; charset=utf8',
-    $db_username,
-    $db_password
+    $dbUserName,
+    $dbPassWord
 );
-$sql = 'select * from pages WHERE id = :id';
-$stmt = $pdo->prepare($sql);
-$stmt->execute([':id' => $id]);
-$result = $stmt->fetch();
 
-$title = $result['title'];
-$content = $result['content'];
+$sql = 'SELECT * FROM pages WHERE id = :id';
+$statement = $pdo->prepare($sql);
+$statement->execute([':id' => $id]);
+$page = $statement->fetch();
 ?>
 
 <!DOCTYPE html>
@@ -25,13 +23,13 @@ $content = $result['content'];
   <body>
   <!-- //メモの新規作成フォーム -->
   <h1>メモ編集</h1>
-  <form action="update.php?id=<?php echo $result['id']; ?>" method="post">
+  <form action="update.php?id=<?php echo $page['id']; ?>" method="post">
     <p>title</p>
-    <input value="<?php echo $title; ?>" type="text" name="title" size="20"></input>
+    <input value="<?php echo $page['title']; ?>" type="text" name="title" size="20"></input>
     <br>
     <br>
     <p>本文</p>
-    <textarea name="content" style="width:300px; height:100px;"><?php echo $content; ?></textarea><br>
+    <textarea name="content" style="width:300px; height:100px;"><?php echo $page['content']; ?></textarea><br>
     <br>
     <input type="submit"  value="送信">
   </form>

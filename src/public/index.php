@@ -1,39 +1,38 @@
 <?php
-$db_username = 'root';
-$db_password = 'password';
-$pdo = new PDO(
-    'mysql:host=mysql; dbname=memo; charset=utf8',
-    $db_username,
-    $db_password
-);
-$sql = 'SELECT * FROM pages';
-$stmt = $pdo->prepare($sql);
-$stmt->execute();
-$results = $stmt->fetchall();
+  session_start();
+  $errors = $_SESSION['errors'] ?? [];
+  unset($_SESSION['errors']);
 
-if (!empty($_POST['search_content'])) {
-    $statement = $pdo->prepare(
-        "SELECT * FROM pages WHERE content LIKE '%" .
-            $_POST['search_content'] .
-            "%' "
-    );
-    $statement->execute();
-    $results = $statement->fetchAll();
-}
+  $dbUserName = 'root';
+  $dbPassWord = 'password';
+  $pdo = new PDO(
+      'mysql:host=mysql; dbname=memo; charset=utf8',
+      $dbUserName,
+      $dbPassWord
+  );
 
-if ($_GET['order'] === 'desc') {
-    $statement = $pdo->prepare('SELECT * FROM pages ORDER BY created_at DESC');
-    $statement->execute();
-    $results = $statement->fetchAll();
-}
+  if (isset($_GET['order'])) {
+    $direction = $_GET['order'];
+  } else {
+    $direction = 'desc';
+  }
 
-if ($_GET['order'] === 'asc') {
-    $statement = $pdo->prepare('SELECT * FROM pages ORDER BY created_at ASC');
-    $statement->execute();
-    $results = $statement->fetchAll();
-}
+  if (isset($_GET['search'])) {
+      $title = '%' . $_GET['search'] . '%';
+      $content = '%' . $_GET['search'] . '%';
+  } else {
+      $title = '%%';
+      $content = '%%';
+  }
+
+  $sql = "SELECT * FROM pages WHERE title LIKE :title OR content LIKE :content ORDER BY id $direction";
+  $statement = $pdo->prepare($sql);
+  $statement->bindValue(':title', $title, PDO::PARAM_STR);
+  $statement->bindValue(':content', $content, PDO::PARAM_STR);
+  $statement->execute();
+  $pages = $statement->fetchAll(PDO::FETCH_ASSOC);
 ?>
- 
+
 <!DOCTYPE html>
  <html>
    <head>
@@ -41,9 +40,9 @@ if ($_GET['order'] === 'asc') {
     <title>メモ一覧</title>
   </head>
   <body>
-    <form action="index.php" method="post">
-      <input type="text" name="search_content" value="<?php echo $search; ?>">
-      <input type="submit" name="search" value="検索">
+    <form action="index.php" method="get">
+      <input type="text" name="search" value="<?php echo $search; ?>">
+      <input type="submit" value="検索">
     </form>
     <h1>メモ一覧</h1>
     <a href="create.php">メモを追加</a>
@@ -62,13 +61,13 @@ if ($_GET['order'] === 'asc') {
         <td>編集</td>
         <td>削除</td>
       </tr>
-      <?php foreach ($results as $result): ?>
+      <?php foreach ($pages as $page): ?>
       <tr>
-        <td><?php echo $result['title']; ?></td>
-        <td><?php echo $result['content']; ?></td>
-        <td><?php echo $result['created_at']; ?></td>
-        <td><a href="edit.php?id=<?php echo $result['id']; ?>">編集</a></td>
-        <td><a href="delete.php?id=<?php echo $result['id']; ?>">削除</a></td>
+        <td><?php echo $page['title']; ?></td>
+        <td><?php echo $page['content']; ?></td>
+        <td><?php echo $page['created_at']; ?></td>
+        <td><a href="edit.php?id=<?php echo $page['id']; ?>">編集</a></td>
+        <td><a href="delete.php?id=<?php echo $page['id']; ?>">削除</a></td>
       </tr>
       <?php endforeach; ?>
     </table>
