@@ -1,15 +1,17 @@
 <?php
-$id = $_GET['id'];
-$db_username = 'root';
-$db_password = 'password';
+$dbUserName = 'root';
+$dbPassWord = 'password';
 $pdo = new PDO(
     'mysql:host=mysql; dbname=memo; charset=utf8',
-    $db_username,
-    $db_password
+    $dbUserName,
+    $dbPassWord
 );
-$sql = 'DELETE from pages WHERE id = :id';
-$stmt = $pdo->prepare($sql);
-$stmt->execute([':id' => $id]);
+
+$id = filter_input(INPUT_GET, 'id', FILTER_SANITIZE_NUMBER_INT);
+
+$sql = 'DELETE FROM pages WHERE id = :id';
+$statement = $pdo->prepare($sql);
+$statement->execute([':id' => $id]);
 
 header('Location: index.php');
 exit();

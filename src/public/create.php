@@ -7,7 +7,7 @@
     <body>
     <!-- メモの新規作成フォーム -->
     <h1>メモ登録</h1>
-    <form action="store.php" method="get">
+    <form action="store.php" method="post">
         <p>title</p>
         <input type="text" name="title" size="20" placeholder="タイトル"></input>
         <br>
