@@ -1,3 +1,13 @@
+<?php
+session_start();
+$errors = $_SESSION['errors'] ?? [];
+unset($_SESSION['errors']);
+
+foreach ($errors as $error) {
+    echo $error;
+}
+?>
+
 <!DOCTYPE html>
 <html>
     <head>
