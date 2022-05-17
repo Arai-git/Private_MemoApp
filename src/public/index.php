@@ -1,36 +1,19 @@
 <?php
-  session_start();
-  $errors = $_SESSION['errors'] ?? [];
-  unset($_SESSION['errors']);
+require_once __DIR__ . '/../vendor/autoload.php';
+use App\UseCase\UseCaseInput\PageInput;
+use App\UseCase\UseCaseInteractor\PageInteractor;
+use App\Adapter\Presenter\PagePresenter;
+use App\Domain\ValueObject\SearchWord;
+use App\Domain\ValueObject\Sort;
 
-  $dbUserName = 'root';
-  $dbPassWord = 'password';
-  $pdo = new PDO(
-      'mysql:host=mysql; dbname=memo; charset=utf8',
-      $dbUserName,
-      $dbPassWord
-  );
-
-  if (isset($_GET['order'])) {
-    $direction = $_GET['order'];
-  } else {
-    $direction = 'desc';
-  }
-
-  if (isset($_GET['search'])) {
-      $title = '%' . $_GET['search'] . '%';
-      $content = '%' . $_GET['search'] . '%';
-  } else {
-      $title = '%%';
-      $content = '%%';
-  }
-
-  $sql = "SELECT * FROM pages WHERE title LIKE :title OR content LIKE :content ORDER BY id $direction";
-  $statement = $pdo->prepare($sql);
-  $statement->bindValue(':title', $title, PDO::PARAM_STR);
-  $statement->bindValue(':content', $content, PDO::PARAM_STR);
-  $statement->execute();
-  $pages = $statement->fetchAll(PDO::FETCH_ASSOC);
+$inputSearchWord = filter_input(INPUT_GET, 'searchWord');
+$inputSort = filter_input(INPUT_GET, 'order');
+$searchWord = new SearchWord($inputSearchWord);
+$sort = new Sort($inputSort);
+$pageInput = new PageInput($searchWord, $sort);
+$pageInteractor = new PageInteractor($pageInput);
+$pagePresenter = new PagePresenter($pageInteractor->handler());
+$pages = $pagePresenter->createPageView();
 ?>
 
 <!DOCTYPE html>
@@ -41,16 +24,16 @@
   </head>
   <body>
     <form action="index.php" method="get">
-      <input type="text" name="search" value="<?php echo $search; ?>">
+      <input type="text" name="searchWord" value="<?php echo $search; ?>">
       <input type="submit" value="検索">
     </form>
     <h1>メモ一覧</h1>
     <a href="create.php">メモを追加</a>
     <br>
-    <form name="desc" method="get">
+    <form action="index.php?order=desc" name="order" value="desc" method="get">
       <a href="index.php?order=desc">新しい順</a>
     </form>
-    <form name="asc" method="get">
+    <form action="index.php?order=asc" name="order" value="asc" method="get">
       <a href="index.php?order=asc">古い順</a>
     </form>
     <table border="1">
